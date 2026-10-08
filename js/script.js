@@ -7,17 +7,23 @@
   const fallback = document.getElementById("fallback");
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
   const quality = window.HeartbeatQuality;
-  let profile = quality.profile(quality.initialTier());
-
-  if (!window.WebGLRenderingContext || !window.THREE || !window.SimplexNoise) {
-    fail("Your browser does not support the 3D experience.");
+  if (!quality || !window.THREE || !window.SimplexNoise || !window.gsap || !window.WebGLRenderingContext) {
+    fail("Some 3D resources could not load. Open the project using a real preview server.");
     return;
   }
+  let profile = quality.profile(quality.initialTier());
 
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(48, window.innerWidth / window.innerHeight, 0.1, 100);
   camera.position.set(0, 0, 2.55);
-  const renderer = new THREE.WebGLRenderer({ antialias: false, alpha: true, powerPreference: "high-performance" });
+  let renderer;
+  try {
+    renderer = new THREE.WebGLRenderer({ antialias: false, alpha: true, powerPreference: "high-performance" });
+  } catch (error) {
+    console.error("Heartbeat: WebGL unavailable", error);
+    fail("WebGL could not start on this device.");
+    return;
+  }
   renderer.setClearColor(0x000000, 0);
   renderer.setPixelRatio(profile.dpr);
   renderer.setSize(window.innerWidth, window.innerHeight);
@@ -70,7 +76,6 @@
     blending: THREE.AdditiveBlending,
     vertexColors: true,
     vertexShader: [
-      "attribute vec3 color;",
       "varying vec3 vColor;",
       "uniform float uPixelRatio;",
       "uniform float uSize;",
@@ -95,7 +100,9 @@
       "}"
     ].join("\n")
   });
-  group.add(new THREE.Points(geometry, material));
+  const cloud = new THREE.Points(geometry, material);
+  cloud.frustumCulled = false; // Dynamic positions invalidate default bounds.
+  group.add(cloud);
 
   const beat = { a: 0.0 };
   let timeline = null;
@@ -118,15 +125,35 @@
     root.classList.add("failed");
   }
 
+  // A procedural backup means an unavailable CodePen OBJ never leaves the page blank.
+  function sampleProceduralHeart(target) {
+    const theta = Math.random() * Math.PI * 2;
+    const radial = Math.sqrt(Math.random());
+    const x = 16 * Math.pow(Math.sin(theta), 3);
+    const y = 13 * Math.cos(theta) - 5 * Math.cos(2 * theta)
+      - 2 * Math.cos(3 * theta) - Math.cos(4 * theta);
+    const shell = Math.sqrt(Math.max(0, 1 - radial * radial));
+    target.set(
+      (x / 18) * radial * 0.77,
+      (y / 18) * radial * 0.77 + 0.09,
+      (Math.random() < 0.5 ? -1 : 1) * shell * 0.23
+    );
+  }
+
   function initialize(mesh) {
-    // The original mesh only supplies points; do not render or deform it each frame.
-    mesh.geometry.rotateX(-Math.PI * 0.5);
-    mesh.geometry.scale(0.04, 0.04, 0.04);
-    mesh.geometry.translate(0, -0.4, 0);
-    const sampler = new THREE.MeshSurfaceSampler(mesh).build();
+    if (ready) return;
+    let sampler = null;
+    if (mesh) {
+      // The original mesh supplies sample points only.
+      mesh.geometry.rotateX(-Math.PI * 0.5);
+      mesh.geometry.scale(0.04, 0.04, 0.04);
+      mesh.geometry.translate(0, -0.4, 0);
+      sampler = new THREE.MeshSurfaceSampler(mesh).build();
+    }
 
     for (let i = 0; i < MAX_SAMPLES; i++) {
-      sampler.sample(temp);
+      if (sampler) sampler.sample(temp);
+      else sampleProceduralHeart(temp);
       const k = i * 3;
       base[k] = temp.x;
       base[k + 1] = temp.y;
@@ -255,14 +282,27 @@
   else if (reducedMotion.addListener) reducedMotion.addListener(motionChanged);
 
   resize();
-  new THREE.OBJLoader().load(
-    "https://assets.codepen.io/127738/heart_2.obj",
-    obj => {
-      const mesh = obj.children && obj.children.find(child => child.geometry);
-      if (!mesh) { fail("The heart model could not be read."); return; }
-      initialize(mesh);
-    },
-    undefined,
-    () => fail("The 3D model could not be loaded. Please try again.")
-  );
+  // Prefer original sculpt; fall back after 2.5 seconds or on error.
+  const fallbackTimer = window.setTimeout(() => initialize(null), 2500);
+  try {
+    new THREE.OBJLoader().load(
+      "https://assets.codepen.io/127738/heart_2.obj",
+      obj => {
+        if (ready) return;
+        window.clearTimeout(fallbackTimer);
+        const mesh = obj.children && obj.children.find(child => child.geometry);
+        initialize(mesh || null);
+      },
+      undefined,
+      error => {
+        console.warn("Heartbeat: OBJ unavailable; using procedural heart", error);
+        window.clearTimeout(fallbackTimer);
+        initialize(null);
+      }
+    );
+  } catch (error) {
+    console.warn("Heartbeat: OBJ loader could not start", error);
+    window.clearTimeout(fallbackTimer);
+    initialize(null);
+  }
 })();
