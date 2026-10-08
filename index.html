@@ -1,19 +1,30 @@
-﻿<!DOCTYPE html>
-<html lang="zh">
+<!DOCTYPE html>
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>forU</title>
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#090611" />
+    <meta name="description" content="A little light in every heartbeat — an interactive particle heart." />
+    <title>Heartbeat — Every beat tells a story</title>
     <link rel="stylesheet" href="css/style.css" />
   </head>
   <body>
-    <script src="js/three.min.js"></script>
-    <script src="js/MeshSurfaceSampler.js"></script>
-    <script src="js/TrackballControls.js"></script>
-    <script src="js/simplex-noise.js"></script>
-    <script src="js/OBJLoader.js"></script>
-    <script src="js/gsap.min.js"></script>
-    <script src="js/script.js"></script>
+    <main class="interface" aria-label="Animated heart experience">
+      <p class="eyebrow">Heart / Beat</p>
+      <div class="footer">
+        <p class="footer-title">Every beat tells a story</p>
+        <p class="footer-hint">Drag to explore · Scroll to zoom</p>
+      </div>
+    </main>
+    <p id="status" class="status" role="status" aria-live="polite">Gathering a little starlight…</p>
+    <div id="fallback" class="fallback" hidden><div><div class="fallback-heart" aria-hidden="true">♥</div><p>A heartbeat, even without WebGL.</p></div></div>
+    <script defer src="js/three.min.js"></script>
+    <script defer src="js/MeshSurfaceSampler.js"></script>
+    <script defer src="js/TrackballControls.js"></script>
+    <script defer src="js/simplex-noise.js"></script>
+    <script defer src="js/OBJLoader.js"></script>
+    <script defer src="js/gsap.min.js"></script>
+    <script defer src="js/quality.js"></script>
+    <script defer src="js/script.js"></script>
   </body>
 </html>
