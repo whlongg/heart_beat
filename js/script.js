@@ -103,6 +103,7 @@
   let ready = false;
   let rendering = false;
   let lastFrame = 0;
+  let frameId = null;
   const monitor = quality.createMonitor(next => {
     profile = next;
     sampleCount = Math.min(MAX_SAMPLES, next.samples);
@@ -200,7 +201,7 @@
   function render(now) {
     if (!rendering) return;
     if (reducedMotion.matches && now - lastFrame < 66) {
-      requestAnimationFrame(render);
+      frameId = requestAnimationFrame(render);
       return;
     }
     lastFrame = now;
@@ -210,18 +211,20 @@
       renderer.render(scene, camera);
       if (!reducedMotion.matches) monitor.tick(now);
     }
-    requestAnimationFrame(render);
+    frameId = requestAnimationFrame(render);
   }
 
   function start() {
     if (rendering || document.hidden) return;
     rendering = true;
     monitor.reset();
-    requestAnimationFrame(render);
+    frameId = requestAnimationFrame(render);
   }
 
   function stop() {
     rendering = false;
+    if (frameId !== null) cancelAnimationFrame(frameId);
+    frameId = null;
     monitor.reset();
   }
 
