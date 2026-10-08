@@ -2,6 +2,10 @@
 
 A cinematic 3D particle heart built with vanilla JavaScript, Three.js, GSAP, and Simplex Noise.
 
+## Browser preview (no local install)
+
+Open [the StackBlitz preview](https://stackblitz.com/github/whlongg/heart_beat/tree/feature/heartbeat-visual-refresh?startScript=start&file=index.html). StackBlitz installs the Vite preview dependency and launches the `start` script inside a browser workspace. Click **Open in New Tab** to see the page on its own. This runs from the feature branch, not the production `main` branch.
+
 ## Preview locally
 
 Serve the repository with a static HTTP server (opening `index.html` directly may fail due to model/CORS restrictions):
@@ -33,7 +37,7 @@ The page starts with a device-appropriate profile and can downgrade after sustai
 
 ## Asset note
 
-The heart mesh is still requested from `https://assets.codepen.io/127738/heart_2.obj`, matching the original project. It must remain reachable for WebGL rendering. Self-host the model only after confirming permission to redistribute it.
+The heart mesh is requested from `https://assets.codepen.io/127738/heart_2.obj`, matching the original project. When unavailable, an approximate procedural heart appears instead. Self-host the model only after confirming permission to redistribute it.
 
 ## Validation checklist
 
