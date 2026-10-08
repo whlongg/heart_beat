@@ -1,0 +1,14 @@
+{
+  "name": "heart-beat-preview",
+  "private": true,
+  "version": "2.0.0-preview",
+  "description": "Standalone Vite preview of the visual refresh branch",
+  "scripts": {
+    "start": "vite --host 0.0.0.0",
+    "dev": "vite --host 0.0.0.0",
+    "build": "vite build"
+  },
+  "devDependencies": {
+    "vite": "^6.3.0"
+  }
+}
